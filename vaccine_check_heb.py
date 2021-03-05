@@ -88,6 +88,8 @@ def reserve_appointment():
         appointment_time_options[0].click()
 
         driver.find_element_by_xpath(CONTINUE_BUTTON_XPATH).click()
+        
+        appointment_reserved = True
 
 if __name__ == "__main__":
     reserve_appointment()
