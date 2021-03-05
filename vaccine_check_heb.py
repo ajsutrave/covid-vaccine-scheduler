@@ -1,4 +1,5 @@
-from pprint import pprint
+#!/usr/bin/env python3
+
 import time
 from datetime import datetime
 from selenium import webdriver
@@ -49,46 +50,47 @@ def get_store():
         if not available: return None
             
 
-def reserve_appointment(
-appointment_reserved = False
-print( "Trying to find a store with vaccines available...", end='' )
-while not appointment_reserved:
-    address = None
-    while not address: address = get_store(); time.sleep(1)
-    print(".", end='' )
+def reserve_appointment():
+    appointment_reserved = False
+    print( "Trying to find a store with vaccines available...", end='' )
+    while not appointment_reserved:
+        address = None
+        while not address: address = get_store(); time.sleep(1)
+        print(".", end='' )
 
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, 'body')))
-    body = driver.find_element_by_tag_name('body')
-    if "Appointments are no longer available for this location" in body.text:
-        recent_failed[address] = datetime.now()
-        continue
-    print(".", end='' )
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        body = driver.find_element_by_tag_name('body')
+        if "Appointments are no longer available for this location" in body.text:
+            recent_failed[address] = datetime.now()
+            continue
+        print(".", end='' )
 
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
-    card = driver.find_element_by_xpath(APPOINTMENT_CARD_XPATH)
-    if "There are no available time slots" in card.text:
-        recent_failed[address] = datetime.now()
-        continue
-    print(".", end='' )
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
+        card = driver.find_element_by_xpath(APPOINTMENT_CARD_XPATH)
+        if "There are no available time slots" in card.text:
+            recent_failed[address] = datetime.now()
+            continue
+        print(".", end='' )
 
-    vaccine_type = driver.find_element_by_xpath(VACCINE_TYPE_XPATH)
-    appointment_date = driver.find_element_by_xpath(APPOINTMENT_DATE_XPATH)
-    appointment_time = driver.find_element_by_xpath(APPOINTMENT_TIME_XPATH)
-    
-    
-    appointment_date.click()
-    appointment_date_options = appointment_date.find_elements_by_tag_name("lightning-base-combobox-item")
-    appointment_date_options[0].click()
+        vaccine_type = driver.find_element_by_xpath(VACCINE_TYPE_XPATH)
+        appointment_date = driver.find_element_by_xpath(APPOINTMENT_DATE_XPATH)
+        appointment_time = driver.find_element_by_xpath(APPOINTMENT_TIME_XPATH)
 
-    appointment_time.click()
-    appointment_time_options = appointment_time.find_elements_by_tag_name("lightning-base-combobox-item")
-    appointment_time_options[0].click()
 
-    driver.find_element_by_xpath(CONTINUE_BUTTON_XPATH).click()
+        appointment_date.click()
+        appointment_date_options = appointment_date.find_elements_by_tag_name("lightning-base-combobox-item")
+        appointment_date_options[0].click()
 
-    break
+        appointment_time.click()
+        appointment_time_options = appointment_time.find_elements_by_tag_name("lightning-base-combobox-item")
+        appointment_time_options[0].click()
+
+        driver.find_element_by_xpath(CONTINUE_BUTTON_XPATH).click()
+
+
+reserve_appointment()
 
 # Now wait if someone closes the window
 while True:
