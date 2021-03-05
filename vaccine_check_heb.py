@@ -10,18 +10,20 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import StaleElementReferenceException
 
-URL = "https://vaccine.heb.com/scheduler"
-STORE_ELEM = "sc-iBPRYJ.cKWKVL"
-APPOINTMENT_CARD_XPATH = "//*[@id=\"container\"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]"
+URL = 'https://vaccine.heb.com/scheduler'
+STORE_ELEM = 'sc-iBPRYJ.cKWKVL'
+APPOINTMENT_CARD_XPATH = '//*[@id=\'container\']/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]'
 
 
-VACCINE_TYPE_XPATH     = "//*[@id=\"container\"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]/slot/div/form/div/lightning-combobox[1]/div/lightning-base-combobox/div"
-APPOINTMENT_DATE_XPATH = "//*[@id=\"container\"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]/slot/div/form/div/lightning-combobox[2]/div/lightning-base-combobox/div"
-APPOINTMENT_TIME_XPATH = "//*[@id=\"container\"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]/slot/div/form/div/lightning-combobox[3]/div/lightning-base-combobox/div"
+VACCINE_TYPE_XPATH     = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]/slot/div/form/div/lightning-combobox[1]/div/lightning-base-combobox/div'
+APPOINTMENT_DATE_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]/slot/div/form/div/lightning-combobox[2]/div/lightning-base-combobox/div'
+APPOINTMENT_TIME_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]/slot/div/form/div/lightning-combobox[3]/div/lightning-base-combobox/div'
 
-CONTINUE_BUTTON_XPATH = "//*[@id=\"container\"]/c-f-s-registration/div/div[1]/div[4]/lightning-button/button"
+CONTINUE_BUTTON_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[4]/lightning-button/button'
 
-ERROR_BANNER = "//*[@id=\"container\"]/c-f-s-registration/div/div[1]/div[3]/div"
+SCHEDULE_APPOINTMENT_BUTTON_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[4]/lightning-button[2]/button'
+
+ERROR_BANNER = '//*[@id=\'container\']/c-f-s-registration/div/div[1]/div[3]/div'
 
 
 
@@ -51,12 +53,11 @@ def get_store():
             
 
 def reserve_appointment():
-    appointment_reserved = False
-    print( "Trying to find a store with vaccines available...", end='' )
-    while not appointment_reserved:
+    print( "Trying to find a store with vaccines available...", end='')
+    while True:
         address = None
         while not address: address = get_store(); time.sleep(1)
-        print(".", end='' )
+        print(".", end='')
 
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, 'body')))
@@ -64,7 +65,7 @@ def reserve_appointment():
         if "Appointments are no longer available for this location" in body.text:
             recent_failed[address] = datetime.now()
             continue
-        print(".", end='' )
+        print(".", end='')
 
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
@@ -72,7 +73,7 @@ def reserve_appointment():
         if "There are no available time slots" in card.text:
             recent_failed[address] = datetime.now()
             continue
-        print(".", end='' )
+        print(".", end='')
 
         vaccine_type = driver.find_element_by_xpath(VACCINE_TYPE_XPATH)
         appointment_date = driver.find_element_by_xpath(APPOINTMENT_DATE_XPATH)
@@ -89,7 +90,13 @@ def reserve_appointment():
 
         driver.find_element_by_xpath(CONTINUE_BUTTON_XPATH).click()
         
-        appointment_reserved = True
+        try:
+            element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, SCHEDULE_APPOINTMENT_BUTTON_XPATH)))
+        except TimeoutException as e:
+            print(".", end='')
+
+        return
 
 if __name__ == "__main__":
     reserve_appointment()
