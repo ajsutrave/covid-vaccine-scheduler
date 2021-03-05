@@ -89,13 +89,13 @@ def reserve_appointment():
 
         driver.find_element_by_xpath(CONTINUE_BUTTON_XPATH).click()
 
+if __name__ == "__main__":
+    reserve_appointment()
 
-reserve_appointment()
-
-# Now wait if someone closes the window
-while True:
-    try:
-        _ = driver.window_handles
-    except WebDriverException as e:
-        break
-    time.sleep(1)
+    # Now wait if someone closes the window
+    while True:
+        try:
+            _ = driver.window_handles
+        except WebDriverException as e:
+            break
+        time.sleep(1)
