@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+import notifypy
+import pgeocode
 import time
 from datetime import datetime
 from selenium import webdriver
@@ -29,6 +30,7 @@ ERROR_BANNER = '//*[@id=\'container\']/c-f-s-registration/div/div[1]/div[3]/div'
 
 recent_failed = {}
 driver = webdriver.Chrome()
+driver.minimize_window()
 
 def get_store():
     # Wait for page to lead
@@ -95,6 +97,15 @@ def reserve_appointment():
                 EC.presence_of_element_located((By.XPATH, SCHEDULE_APPOINTMENT_BUTTON_XPATH)))
         except TimeoutException as e:
             print(".", end='')
+
+        driver.maximize_window()
+
+        try:
+            notification = notify.Notify()
+            notification.title = "Vaccine Found"
+            notification.message = address
+            notification.send()
+        except: pass
 
         return
 
