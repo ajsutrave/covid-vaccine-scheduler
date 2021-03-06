@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import notifypy
-import pgeocode
+import re
 import time
+import sys
+
 from datetime import datetime
+from pgeocode import GeoDistance
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
@@ -26,13 +28,25 @@ SCHEDULE_APPOINTMENT_BUTTON_XPATH = '//*[@id="container"]/c-f-s-registration/div
 
 ERROR_BANNER = '//*[@id=\'container\']/c-f-s-registration/div/div[1]/div[3]/div'
 
-
+KM_TO_MILES = 0.621371
 
 recent_failed = {}
+
 driver = webdriver.Chrome()
 driver.minimize_window()
 
-def get_store():
+dist = GeoDistance('us')
+
+class StoreAddress():
+    def __init__(self, address, user_zip_code):
+        self.address = address
+        self.zip_code = re.search('\d\d\d\d\d', self.address).group(0)
+        self.distance = dist.query_postal_code(self.zip_code, user_zip_code) * KM_TO_MILES
+    def __repr__(self):
+        return self.address + "\n(" + str(self.distance) + " miles away)"
+        
+
+def get_store(max_distance, zip_code):
     # Wait for page to lead
     driver.get(URL)
     element = WebDriverWait(driver, 10).until(
@@ -40,8 +54,12 @@ def get_store():
 
     for store in driver.find_elements_by_class_name(STORE_ELEM):
         try:
-            address = store.find_element_by_tag_name('address').text
-            if address in recent_failed: continue
+            store_address = StoreAddress(address = store.find_element_by_tag_name('address').text,
+                                         user_zip_code = zip_code)
+            
+            if store_address in recent_failed or \
+               store_address.distance > max_distance: continue
+
         except StaleElementReferenceException as e:
             print( e )
             return None
@@ -49,23 +67,23 @@ def get_store():
         for store_elem in store.find_elements_by_xpath(".//*"):
             if ("View times" in store_elem.text):
                 store_elem.click()
-                return address
+                return store_address
         
         if not available: return None
             
 
-def reserve_appointment():
+def reserve_appointment(max_distance, zip_code):
     print( "Trying to find a store with vaccines available...", end='')
     while True:
-        address = None
-        while not address: address = get_store(); time.sleep(1)
+        store_address = None
+        while not store_address: store_address = get_store(max_distance, zip_code)
         print(".", end='')
 
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, 'body')))
         body = driver.find_element_by_tag_name('body')
         if "Appointments are no longer available for this location" in body.text:
-            recent_failed[address] = datetime.now()
+            recent_failed[store_address] = datetime.now()
             continue
         print(".", end='')
 
@@ -73,7 +91,7 @@ def reserve_appointment():
             EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
         card = driver.find_element_by_xpath(APPOINTMENT_CARD_XPATH)
         if "There are no available time slots" in card.text:
-            recent_failed[address] = datetime.now()
+            recent_failed[store_address] = datetime.now()
             continue
         print(".", end='')
 
@@ -103,14 +121,22 @@ def reserve_appointment():
         try:
             notification = notify.Notify()
             notification.title = "Vaccine Found"
-            notification.message = address
+            notification.message = store_address
             notification.send()
-        except: pass
-
+        except: 
+            print("Vaccine Found")
+            print(store_address)
         return
 
 if __name__ == "__main__":
-    reserve_appointment()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--zip-code',type=int)
+    parser.add_argument('--max-distance',type=int)
+    args = parser.parse_args()
+    
+
+    reserve_appointment(args.max_distance, args.zip_code)
 
     # Now wait if someone closes the window
     while True:
