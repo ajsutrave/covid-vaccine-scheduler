@@ -40,7 +40,7 @@ dist = GeoDistance('us')
 class StoreAddress():
     def __init__(self, address, user_zip_code):
         self.address = address
-        self.zip_code = re.search('\d\d\d\d\d', self.address).group(0)
+        self.zip_code = re.search('[78]\d\d\d\d', self.address).group(0)
         self.distance = dist.query_postal_code(self.zip_code, user_zip_code) * KM_TO_MILES
     def __repr__(self):
         return self.address + "\n(" + str(self.distance) + " miles away)"
