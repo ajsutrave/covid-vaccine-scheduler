@@ -47,10 +47,12 @@ class StoreAddress():
         
 
 def get_store(max_distance, zip_code):
-    # Wait for page to lead
+    # Wait for page to load
     driver.get(URL)
-    element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, STORE_ELEM)))
+    try:
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, STORE_ELEM)))
+    except TimeoutException: return None
 
     for store in driver.find_elements_by_class_name(STORE_ELEM):
         try:
@@ -79,16 +81,28 @@ def reserve_appointment(max_distance, zip_code):
         while not store_address: store_address = get_store(max_distance, zip_code)
         print(".", end='')
 
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        except Timeoutexception: continue
+
+
         body = driver.find_element_by_tag_name('body')
         if "Appointments are no longer available for this location" in body.text:
             recent_failed[store_address] = datetime.now()
             continue
         print(".", end='')
 
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
+        for fail_store_address in list(recent_failed.keys()):
+            fail_time = recent_failed[fail_store_address]
+            if (fail_time - datetime.now()).total_seconds() > 600:
+                del recent_failed[fail_store_address]
+
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
+        except Timeoutexception: continue
+
         card = driver.find_element_by_xpath(APPOINTMENT_CARD_XPATH)
         if "There are no available time slots" in card.text:
             recent_failed[store_address] = datetime.now()
@@ -113,8 +127,7 @@ def reserve_appointment(max_distance, zip_code):
         try:
             element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, SCHEDULE_APPOINTMENT_BUTTON_XPATH)))
-        except TimeoutException as e:
-            print(".", end='')
+        except TimeoutException: continue
 
         driver.maximize_window()
 
