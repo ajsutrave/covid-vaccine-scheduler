@@ -84,7 +84,7 @@ def reserve_appointment(max_distance, zip_code):
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        except Timeoutexception: continue
+        except TimeoutException: continue
 
 
         body = driver.find_element_by_tag_name('body')
@@ -101,7 +101,7 @@ def reserve_appointment(max_distance, zip_code):
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, APPOINTMENT_CARD_XPATH)))
-        except Timeoutexception: continue
+        except TimeoutException: continue
 
         card = driver.find_element_by_xpath(APPOINTMENT_CARD_XPATH)
         if "There are no available time slots" in card.text:
