@@ -24,19 +24,19 @@ CONTINUE_BUTTON_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[
 
 
 PERSONAL_INFO_XPATH_PREFIX = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[3]/div/lightning-card/article/div[2]/slot/div/form/div/'
-FIRST_NAME_XPATH             = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[1]/div[1]'
-LAST_NAME_XPATH              = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[2]/div[1]'
-EMAIL_XPATH                  = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[3]/div[1]'
-PHONE_NUMBER_XPATH           = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[4]/div[1]'
-DATE_OF_BIRTH_XPATH          = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[5]/div[1]'
-HAVE_INSURANCE_XPATH         = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[6]/div[1]'
-INSURANCE_COMPANY_NAME_XPATH = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[7]/div[1]'
-INSURANCE_ID_NUMBER_XPATH    = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[8]/div[1]'
-INSURANCE_GROUP_NUMBER_XPATH = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[9]/div[1]'
-ELIGIBILITY_XPATH            = PERSONAL_INFO_XPATH_PREFIX +'lightning-input[10]/div[1]'
+FIRST_NAME_XPATH             = PERSONAL_INFO_XPATH_PREFIX + 'lightning-input[1]/div[1]'
+LAST_NAME_XPATH              = PERSONAL_INFO_XPATH_PREFIX + 'lightning-input[2]/div[1]'
+EMAIL_XPATH                  = PERSONAL_INFO_XPATH_PREFIX + 'lightning-input[3]/div[1]'
+PHONE_NUMBER_XPATH           = PERSONAL_INFO_XPATH_PREFIX + 'div[1]/input'
+DATE_OF_BIRTH_XPATH          = PERSONAL_INFO_XPATH_PREFIX + 'div[2]/input'
+
+HAVE_INSURANCE_XPATH         = PERSONAL_INFO_XPATH_PREFIX + 'lightning-combobox[1]/div[1]/lightning-base-combobox/div'
+INSURANCE_COMPANY_NAME_XPATH = PERSONAL_INFO_XPATH_PREFIX + 'lightning-input[5]/div[1]'
+INSURANCE_ID_NUMBER_XPATH    = PERSONAL_INFO_XPATH_PREFIX + 'lightning-input[6]/div[1]'
+INSURANCE_GROUP_NUMBER_XPATH = PERSONAL_INFO_XPATH_PREFIX + 'lightning-input[7]/div[1]'
+ELIGIBILITY_XPATH            = PERSONAL_INFO_XPATH_PREFIX + 'lightning-combobox[2]/div/lightning-base-combobox/div'
 
 SCHEDULE_APPOINTMENT_BUTTON_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[4]/lightning-button[2]/button'
-
 
 KM_TO_MILES = 0.621371
 
@@ -170,11 +170,11 @@ def reserve_appointment(max_distance, zip_code, personal_info):
         
         have_insurance = driver.find_element_by_xpath(HAVE_INSURANCE_XPATH)
         have_insurance.click()
+        have_insurance = driver.find_element_by_xpath(HAVE_INSURANCE_XPATH)
         have_insurance_options = have_insurance.find_elements_by_tag_name("lightning-base-combobox-item")
 
         if personal_info.have_insurance:
-            # have_insurance_options[0].click()
-            
+            have_insurance_options[0].click()
             if personal_info.insurance_company_name:
                 insurance_company_name = driver.find_element_by_xpath(INSURANCE_COMPANY_NAME_XPATH)
                 insurance_company_name.click()
@@ -189,17 +189,17 @@ def reserve_appointment(max_distance, zip_code, personal_info):
                 insurance_group_number = driver.find_element_by_xpath(INSURANCE_GROUP_NUMBER_XPATH)
                 insurance_group_number.click()
                 insurance_group_number.send_keys(personal_info.insurance_group_number)
-
         else:
-            pass
-            # have_insurance_options[1].click()
+            have_insurance_options[1].click()
 
-
-        # eligibility = driver.find_element_by_xpath(ELIGIBILITY_XPATH)
-        # eligibility.click()
-        # eligibility_options = eligibility.find_elements_by_tag_name("lightning-base-combobox-item")
-        # eligibility_options[0].click()
+        eligibility = driver.find_element_by_xpath(ELIGIBILITY_XPATH)
+        eligibility.click()
+        eligibility_options = eligibility.find_elements_by_tag_name("lightning-base-combobox-item")
+        eligibility_options[0].click()
         
+        if args.auto-accept:
+            driver.find_element_by_xpath(SCHEDULE_APPOINTMENT_BUTTON_XPATH).click()
+
         return
 
 if __name__ == "__main__":
@@ -214,20 +214,34 @@ if __name__ == "__main__":
     parser.add_argument('--phone-number',type=int)
     parser.add_argument('--date-of-birth',type=int,
                         help='MMDDYYYY with no punctuation')
+
     parser.add_argument('--have-insurance',action='store_true',
                         help='set this flag if you have health insurance')
     parser.add_argument('--insurance-company-name',type=str)
     parser.add_argument('--insurance-id-number',type=int)
     parser.add_argument('--insurance-group-number',type=int)
 
+    parser.add_argument('--auto-accept',action='store_true',
+                        help="""set this flag to automatically accept the appointment when one is found. 
+                        Note that you can cancel via email if you cannot make the appointment""")
+
+    if args.auto_accept and (args.first_name is None or \
+                             args.last_name is None or \
+                             args.email is None or \
+                             args.phone_number is None or \
+                             args.date_of_birth is None ) :
+        print("""If --auto-accept is used, first name, last name, DOB, email,
+        and phone number need to be filled out """)
+        exit(1)
+
     args = parser.parse_args()
     from pprint import pprint; pprint(vars(args))
 
+    reserve_appointment(args.max_distance, args.zip_code, personal_info = args)
 
     # Now wait if someone closes the window
     while True:
         try:
-            reserve_appointment(args.max_distance, args.zip_code, personal_info = args)
             _ = driver.window_handles
         except WebDriverException as e:
             break
