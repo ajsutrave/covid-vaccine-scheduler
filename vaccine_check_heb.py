@@ -212,18 +212,21 @@ if __name__ == "__main__":
     parser.add_argument('--last-name',type=str)
     parser.add_argument('--email',type=str)
     parser.add_argument('--phone-number',type=int)
-    parser.add_argument('--date-of-birth',type=int,
+    parser.add_argument('--date-of-birth',type=str,
                         help='MMDDYYYY with no punctuation')
 
     parser.add_argument('--have-insurance',action='store_true',
                         help='set this flag if you have health insurance')
     parser.add_argument('--insurance-company-name',type=str)
-    parser.add_argument('--insurance-id-number',type=int)
+    parser.add_argument('--insurance-id-number',type=str)
     parser.add_argument('--insurance-group-number',type=int)
 
     parser.add_argument('--auto-accept',action='store_true',
                         help="""set this flag to automatically accept the appointment when one is found. 
                         Note that you can cancel via email if you cannot make the appointment""")
+
+    args = parser.parse_args()
+    from pprint import pprint; pprint(vars(args))
 
     if args.auto_accept and (args.first_name is None or \
                              args.last_name is None or \
@@ -235,7 +238,6 @@ if __name__ == "__main__":
         exit(1)
 
     args = parser.parse_args()
-    from pprint import pprint; pprint(vars(args))
 
     reserve_appointment(args.max_distance, args.zip_code, personal_info = args)
 
