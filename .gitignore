@@ -132,4 +132,4 @@ dmypy.json
 *~
 
 # Personal Info
-personal_info.txt
+personal_info*.txt
