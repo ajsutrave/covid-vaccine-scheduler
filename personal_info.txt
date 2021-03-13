@@ -5,7 +5,7 @@ Jane
 --last-name
 Doe
 --email
-janeoe@aol.com
+janedoe@aol.com
 --phone-number
 1234567890
 --date-of-birth
