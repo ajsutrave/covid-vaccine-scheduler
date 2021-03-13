@@ -14,7 +14,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import StaleElementReferenceException
 
 URL = 'https://vaccine.heb.com/scheduler'
-STORE_ELEM = 'sc-iBPRYJ.cKWKVL'
+STORE_ELEM = 'sc-iBPRYJ.uDpEv'
 
 APPOINTMENT_CARD_XPATH = '//*[@id="container"]/c-f-s-registration/div/div[1]/div[3]/lightning-card/article/div[2]'
 VACCINE_TYPE_XPATH     = APPOINTMENT_CARD_XPATH + '/slot/div/form/div/lightning-combobox[1]/div/lightning-base-combobox/div'
@@ -195,9 +195,9 @@ def reserve_appointment(max_distance, zip_code, personal_info):
         eligibility = driver.find_element_by_xpath(ELIGIBILITY_XPATH)
         eligibility.click()
         eligibility_options = eligibility.find_elements_by_tag_name("lightning-base-combobox-item")
-        eligibility_options[0].click()
+        eligibility_options[1].click()
         
-        if args.auto-accept:
+        if args.auto_accept:
             driver.find_element_by_xpath(SCHEDULE_APPOINTMENT_BUTTON_XPATH).click()
 
         return
