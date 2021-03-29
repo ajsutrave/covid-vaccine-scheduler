@@ -205,6 +205,8 @@ def reserve_appointment(max_distance, zip_code, personal_info):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
+    parser.add_argument('--chrome-driver-path',type=str)
+
     parser.add_argument('--zip-code',type=int)
     parser.add_argument('--max-distance',type=int)
 
@@ -238,6 +240,10 @@ if __name__ == "__main__":
         exit(1)
 
     args = parser.parse_args()
+
+    if args.chrome_driver_path is not None:
+        driver = webdriver.Chrome(chrome_driver_path)
+        driver.minimize_window()
 
     reserve_appointment(args.max_distance, args.zip_code, personal_info = args)
 
