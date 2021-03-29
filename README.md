@@ -5,12 +5,13 @@ First install dependencies
 ```
 python3 -m pip install -r requirements.txt
 ```
-You will also need to install the Chrome Driver from 
+You will also need to install the Selenium Driver for your broswer:
 https://sites.google.com/a/chromium.org/chromedriver/downloads
+https://github.com/mozilla/geckodriver/releases
 
 Make sure to either add the driver to your $PATH, or specify to the script where it was downloaded
 ```
-python3 vaccine_check_heb.py --chrome-driver-path /Path/To/Chrome/Driver/chromedriver.exe
+python3 vaccine_check_heb.py --browser-driver-path /Path/To/Browser/Driver/browserdriver.exe
 ```
 
 ## Usage
