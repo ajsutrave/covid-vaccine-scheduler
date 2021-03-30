@@ -6,8 +6,13 @@ First install dependencies
 python3 -m pip install -r requirements.txt
 ```
 You will also need to install the Selenium Driver for your broswer:
+For Chrome check here:
 https://sites.google.com/a/chromium.org/chromedriver/downloads
+
+And for Firefox check here:
 https://github.com/mozilla/geckodriver/releases
+
+If you have a problem with the driver interfering with usage of one browser, simply use the bot with the other browser
 
 Make sure to either add the driver to your $PATH, or specify to the script where it was downloaded
 ```

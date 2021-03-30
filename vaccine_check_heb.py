@@ -55,10 +55,17 @@ class StoreAddress():
         
 class HEBVaccineChecker():
     def __init__(self, browser, browser_driver_path):
-        if browser == "Chrome":
-            self.driver = webdriver.Chrome(browser_driver_path)
-        elif browser == "Firefox":
-            self.driver = webdriver.Firefox(browser_driver_path)
+        if browser.lower() == "chrome":
+            self.driver = webdriver.Chrome()
+        elif browser.lower() == "firefox":
+            self.driver = webdriver.Firefox()
+
+        if browser_driver_path is not None:
+            if browser.lower() == "chrome":
+                self.driver = webdriver.Chrome(browser_driver_path)
+            elif browser.lower() == "firefox":
+                self.driver = webdriver.Firefox(browser_driver_path)
+
         self.driver.minimize_window()
 
     def get_store(self, max_distance, zip_code):
@@ -89,11 +96,11 @@ class HEBVaccineChecker():
             if not available: return None
 
 
-    def reserve_appointment(max_distance, zip_code, personal_info):
+    def reserve_appointment(self, max_distance, zip_code, personal_info):
         print( "Trying to find a store with vaccines available...", end='')
         while True:
             store_address = None
-            while not store_address: store_address = get_store(max_distance, zip_code)
+            while not store_address: store_address = self.get_store(max_distance, zip_code)
             print(".", end='')
 
             try:
@@ -211,7 +218,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument('--browser-driver-path',type=str)
-    parser.add_argument('--browser',type=str)
+    parser.add_argument('--browser', default='chrome', type=str)
 
     parser.add_argument('--zip-code',type=int)
     parser.add_argument('--max-distance',type=int)
@@ -233,28 +240,27 @@ if __name__ == "__main__":
                         help="""set this flag to automatically accept the appointment when one is found. 
                         Note that you can cancel via email if you cannot make the appointment""")
 
-    args = parser.parse_args(args.brower, args.browser_driver_path)
+    args = parser.parse_args()
     from pprint import pprint; pprint(vars(args))
 
-    if args.auto_accept and (args.first_name is None or \
-                             args.last_name is None or \
-                             args.email is None or \
-                             args.phone_number is None or \
+    args = parser.parse_args()
+
+    if args.auto_accept and (args.first_name    is None or \
+                             args.last_name     is None or \
+                             args.email         is None or \
+                             args.phone_number  is None or \
                              args.date_of_birth is None ) :
         print("""If --auto-accept is used, first name, last name, DOB, email,
         and phone number need to be filled out """)
         exit(1)
 
-    args = parser.parse_args()
-
-    HEBVaccineChecker(args.browser, args.browser_driver_path).\
-        reserve_appointment(args.max_distance, args.zip_code, personal_info = args)
+    checker = HEBVaccineChecker(args.browser, args.browser_driver_path)
+    checker.reserve_appointment(args.max_distance, args.zip_code, personal_info = args)
 
     # Now wait if someone closes the window
     while True:
         try:
-            _ = driver.window_handles
+            _ = checker.driver.window_handles
         except WebDriverException as e:
             break
         time.sleep(1)
-        
